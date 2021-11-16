@@ -63,24 +63,35 @@ def post_activity():
         _abort(400, "No request body")
 
     _assert("name" in data, 400, "Activity without name filed")
-    # _assert("date" in data, 400, "Activity without date filed")
-    # _assert("beginning" in data, 400, "Activity without beginning filed")
 
     name = data.get("name")
-    # date = data.get("date")
-    # beginning = data.get("beginning")
-    description = data.get("description", "")
 
-    try:
-        activity = controller.create_activity(name=name, description=description)
-    except AssertionError as e:
-        _abort(400, str(e))
-    res = {
-        "activity": activity,
-        "status_code": 201
-    }
+    finished_activity = None
+    new_activity = None
+    if name == "end":
+        try:
+            finished_activity = controller.finish_last_activity()
+        except AssertionError as e:
+            _abort(400, str(e))
 
-    return jsonify(res), 201
+        res = {
+            "new_activity": new_activity,
+            "finished_activity": finished_activity,
+            "status_code": 200
+        }
+        return jsonify(res), 200
+    else:
+        try:
+            new_activity, finished_activity = controller.create_activity(name=name)
+        except AssertionError as e:
+            _abort(400, str(e))
+
+        res = {
+            "new_activity": new_activity,
+            "finished_activity": finished_activity,
+            "status_code": 201
+        }
+        return jsonify(res), 201
 
 
 @app.after_request
