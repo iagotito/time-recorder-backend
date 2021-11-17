@@ -10,10 +10,10 @@ from . connect2db import TIME_RECORDER_DB as DB
 
 
 class Activity():
-    def __init__(self, name:str):
+    def __init__(self, name:str, description:str=""):
         self._id:Optional[str] = None
         self.name:str = name
-        self.description:str = ""
+        self.description:str = description
         now = datetime.now()
         self.date:str = now.strftime("%Y-%m-%d")
         self.beginning:str = now.strftime("%H:%M")
@@ -29,17 +29,13 @@ class Activity():
 
     @staticmethod
     def find_by_date(date:str):
-        query = {
-            "date": date
-        }
+        query = { "date": date }
         cursor = DB.activity.find(query)
         return list(cursor)
 
     @staticmethod
     def find_last_of_date(date:str):
-        query = {
-            "date": date
-        }
+        query = { "date": date }
         cursor = DB.activity.find(query).sort([("created_at", pymongo.DESCENDING)])
         return next(cursor, None)
 
@@ -51,10 +47,6 @@ class Activity():
         update_doc = {
             "$set": update_fields
         }
-        print(f"{update_fields = }")
-        print(f"{update_fields = }")
-        print(f"{update_fields = }")
-        print(f"{update_fields = }")
         update_result = DB.activity.find_one_and_update(query, update_doc, return_document=pymongo.ReturnDocument.AFTER)
         return update_result
 

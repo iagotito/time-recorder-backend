@@ -57,12 +57,12 @@ def finish_last_activity():
     return updated_activity
 
 
-def create_activity(name:str):
+def create_activity(name:str, description:str=""):
     # TODO: asserts
 
     finished_activity = finish_last_activity()
 
-    activity = Activity(name=name)
+    activity = Activity(name=name, description=description)
     activity.save()
 
     return vars(activity), finished_activity
@@ -72,3 +72,15 @@ def get_activities(date:str):
     _validate_date(date)
 
     return Activity.find_by_date(date)
+
+
+def update_activity(activity_id, update_fields):
+    if "beginning" in update_fields.keys() and "end" in update_fields.keys():
+        # import pdb; pdb.set_trace()
+        update_fields["total"], update_fields["total_hours"] = _get_time_diff(update_fields["beginning"], update_fields["end"])
+
+    updated_activity = Activity.update_activity(activity_id, update_fields)
+    assert updated_activity is not None, f"Activity not found: {activity_id}"
+
+
+    return updated_activity

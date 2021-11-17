@@ -65,6 +65,7 @@ def post_activity():
     _assert("name" in data, 400, "Activity without name filed")
 
     name = data.get("name")
+    description = data.get("description", "")
 
     finished_activity = None
     new_activity = None
@@ -82,7 +83,7 @@ def post_activity():
         return jsonify(res), 200
     else:
         try:
-            new_activity, finished_activity = controller.create_activity(name=name)
+            new_activity, finished_activity = controller.create_activity(name=name, description=description)
         except AssertionError as e:
             _abort(400, str(e))
 
@@ -92,6 +93,25 @@ def post_activity():
             "status_code": 201
         }
         return jsonify(res), 201
+
+
+@app.route("/activity/<id>", methods=["PUT"])
+def put_activity(id):
+    data = request.get_json()
+    if data is None:
+        _abort(400, "No request body")
+
+    updated_activity = None
+    try:
+        updated_activity = controller.update_activity(id, data)
+    except AssertionError as e:
+        _abort(400, str(e))
+
+    res = {
+        "updated_activity": updated_activity,
+        "status_code": 200
+    }
+    return jsonify(res), 200
 
 
 @app.after_request
