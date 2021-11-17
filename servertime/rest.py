@@ -1,5 +1,6 @@
+import os
 from datetime import datetime
-from flask import Flask, jsonify, request, make_response, abort
+from flask import Flask, jsonify, request, make_response, abort, send_file
 
 from . import controller
 
@@ -112,6 +113,18 @@ def put_activity(id):
         "status_code": 200
     }
     return jsonify(res), 200
+
+
+@app.route("/download", methods=["GET"])
+def download_data():
+    args = request.args
+
+    date:str = args.get("date", datetime.now().strftime("%Y-%m-%d"))
+
+    filename = controller.create_csv_data(date)
+    filepath = os.path.abspath(filename)
+
+    return send_file(filepath, as_attachment=True), 200
 
 
 @app.after_request

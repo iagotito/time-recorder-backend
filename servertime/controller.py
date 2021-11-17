@@ -1,5 +1,8 @@
 from datetime import datetime
+import os
 from typing import Optional, Tuple
+import csv
+
 from servertime.models import Activity
 
 TIME_FORMAT = "%H:%M"
@@ -20,7 +23,7 @@ def _get_time_diff(beginning:str, end:str) -> Tuple[str, float]:
     delta = t2 - t1
     duration_seconds = delta.total_seconds()
     duration_hours = round((duration_seconds / 60) / 60, 2)
-    return ':'.join(str(delta).split(':')[:2]), duration_hours
+    return ":".join(str(delta).split(":")[:2]), duration_hours
 
 
 def _validate_date(date_text:str):
@@ -76,11 +79,37 @@ def get_activities(date:str):
 
 def update_activity(activity_id, update_fields):
     if "beginning" in update_fields.keys() and "end" in update_fields.keys():
-        # import pdb; pdb.set_trace()
         update_fields["total"], update_fields["total_hours"] = _get_time_diff(update_fields["beginning"], update_fields["end"])
 
     updated_activity = Activity.update_activity(activity_id, update_fields)
     assert updated_activity is not None, f"Activity not found: {activity_id}"
 
-
     return updated_activity
+
+
+def _create_data_dir():
+    if not os.path.exists("./data"):
+        os.mkdir("./data")
+
+
+def create_csv_data(date:str):
+    activities = Activity.find_by_date(date)
+
+    assert activities, f"No activities registered for the date {date}."
+
+    HEADER = ["name", "description", "date", "total", "total_hours", "beginning", "end"]
+
+    _create_data_dir()
+
+    filename = f"data/{date}.csv"
+
+    with open(filename, "w", encoding="UTF8") as csvfile:
+        writer = csv.writer(csvfile)
+
+        writer.writerow(HEADER)
+
+        for a in activities:
+            row = [a.get(field) for field in HEADER]
+            writer.writerow(row)
+
+    return filename
